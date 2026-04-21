@@ -14,15 +14,15 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   return (
     <label className="flex w-full flex-col gap-2" htmlFor={id}>
       {label ? (
-        <span className="text-label text-text-secondary">{label}</span>
+        <span className="text-label uppercase tracking-[0.16em] text-text-secondary">{label}</span>
       ) : null}
       <input
         ref={ref}
         className={cn(
-          'h-10 w-full rounded-lg border bg-surface-inset px-3 py-2 text-body text-text-primary placeholder:text-text-tertiary',
+          'h-[52px] w-full rounded-[20px] border border-border/78 bg-[linear-gradient(180deg,_rgba(255,255,255,0.86),_rgba(244,248,255,0.92))] px-4 py-3 text-body text-text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_10px_24px_rgba(10,24,49,0.05)] backdrop-blur-[10px] placeholder:text-text-tertiary transition-all duration-300 hover:border-border-strong',
           error
-            ? 'border-danger ring-2 ring-danger/20'
-            : 'border-border focus:border-primary focus:ring-2 focus:ring-primary/20',
+            ? 'border-danger/35 ring-2 ring-danger/15 focus:border-danger focus:outline-none focus:ring-4 focus:ring-danger/15'
+            : 'focus:-translate-y-0.5 focus:border-primary/28 focus:bg-white focus:outline-none focus:ring-4 focus:ring-primary/12',
           className
         )}
         id={id}

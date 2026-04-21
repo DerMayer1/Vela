@@ -83,7 +83,7 @@ export function SignUpForm() {
       />
       <Input
         autoComplete="new-password"
-        description="Use at least 8 characters, including a letter and a number."
+        description="Use at least 8 characters with one letter and one number."
         error={errors.password?.message}
         id="signup-password"
         label="Password"

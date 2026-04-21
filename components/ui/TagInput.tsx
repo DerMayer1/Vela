@@ -35,13 +35,13 @@ export function TagInput({
 
   return (
     <label className="flex w-full flex-col gap-2">
-      <span className="text-label text-text-secondary">{label}</span>
-      <div className="rounded-lg border border-border bg-surface-inset px-3 py-3">
+      <span className="text-label uppercase tracking-[0.16em] text-text-secondary">{label}</span>
+      <div className="field-shell rounded-[24px] px-4 py-4">
         <div className="flex flex-wrap gap-2">
           {value.map((item) => (
             <span
               key={item}
-              className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary-light px-3 py-1 text-xs font-medium text-primary"
+              className="inline-flex items-center gap-2 rounded-full border border-primary/18 bg-primary-light/90 px-3 py-1.5 text-xs font-semibold text-primary"
             >
               {item}
               <button

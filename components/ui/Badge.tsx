@@ -16,15 +16,15 @@ interface BadgeProps {
 }
 
 const variantClasses = {
-  cancelled: 'border-danger/20 bg-danger-light text-danger',
-  completed: 'border-border bg-surface-inset text-text-secondary',
-  danger: 'border-danger/20 bg-danger-light text-danger',
-  default: 'border-border bg-surface-raised text-text-secondary',
-  info: 'border-info/20 bg-info-light text-info',
-  'in-progress': 'border-success/20 bg-success-light text-success',
-  scheduled: 'border-info/20 bg-info-light text-info',
-  success: 'border-success/20 bg-success-light text-success',
-  warning: 'border-warning/20 bg-warning-light text-warning'
+  cancelled: 'border border-danger/18 bg-danger-light text-danger shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]',
+  completed: 'border border-border/70 bg-white/84 text-text-secondary shadow-[inset_0_1px_0_rgba(255,255,255,0.84)]',
+  danger: 'border border-danger/18 bg-danger-light text-danger shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]',
+  default: 'border border-border/70 bg-white/84 text-text-secondary shadow-[inset_0_1px_0_rgba(255,255,255,0.84)]',
+  info: 'border border-primary/16 bg-primary-light/90 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.78)]',
+  'in-progress': 'border border-accent/18 bg-accent-light text-accent shadow-[inset_0_1px_0_rgba(255,255,255,0.78)]',
+  scheduled: 'border border-primary/16 bg-primary-light/90 text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.78)]',
+  success: 'border border-accent/18 bg-accent-light text-accent shadow-[inset_0_1px_0_rgba(255,255,255,0.78)]',
+  warning: 'border border-warning/18 bg-warning-light text-warning shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]'
 }
 
 export function Badge({
@@ -35,7 +35,7 @@ export function Badge({
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium',
+        'inline-flex items-center rounded-full px-3.5 py-1.5 text-xs font-semibold tracking-[0.16em] uppercase',
         variantClasses[variant],
         className
       )}

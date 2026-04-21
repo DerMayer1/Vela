@@ -58,12 +58,40 @@ async function main() {
   const sampleEmail = 'patient@velahealth.test'
   const samplePassword = 'VelaHealth123'
   const passwordHash = hashPassword(samplePassword)
+  const tenantResult = await client.query(
+    `
+      INSERT INTO tenants (id, slug, name, primary_color, created_at, updated_at)
+      VALUES ($1, $2, $3, $4, NOW(), NOW())
+      ON CONFLICT (slug)
+      DO UPDATE SET
+        name = EXCLUDED.name,
+        primary_color = EXCLUDED.primary_color,
+        updated_at = NOW()
+      RETURNING id
+    `,
+    [randomUUID(), 'vela', 'Vela Health', '#0A6EBD']
+  )
+
+  const tenantId = tenantResult.rows[0]?.id
+
+  if (!tenantId) {
+    throw new Error('Failed to create or update default tenant')
+  }
 
   const userResult = await client.query(
     `
-      INSERT INTO users (id, first_name, last_name, email, password_hash, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
-      ON CONFLICT (email)
+      INSERT INTO users (
+        id,
+        tenant_id,
+        first_name,
+        last_name,
+        email,
+        password_hash,
+        created_at,
+        updated_at
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+      ON CONFLICT (tenant_id, email)
       DO UPDATE SET
         first_name = EXCLUDED.first_name,
         last_name = EXCLUDED.last_name,
@@ -71,7 +99,7 @@ async function main() {
         updated_at = NOW()
       RETURNING id
     `,
-    [randomUUID(), 'Alex', 'Johnson', sampleEmail, passwordHash]
+    [randomUUID(), tenantId, 'Alex', 'Johnson', sampleEmail, passwordHash]
   )
 
   const userId = userResult.rows[0]?.id
@@ -84,6 +112,7 @@ async function main() {
     `
       INSERT INTO patient_profiles (
         id,
+        tenant_id,
         user_id,
         date_of_birth,
         gender,
@@ -100,9 +129,9 @@ async function main() {
         updated_at
       )
       VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8,
-        $9::text[], $10::text[], $11::text[],
-        $12, $13, NOW(), NOW()
+        $1, $2, $3, $4, $5, $6, $7, $8, $9,
+        $10::text[], $11::text[], $12::text[],
+        $13, $14, NOW(), NOW()
       )
       ON CONFLICT (user_id)
       DO UPDATE SET
@@ -122,6 +151,7 @@ async function main() {
     `,
     [
       randomUUID(),
+      tenantId,
       userId,
       '1991-05-12',
       'prefer-not-to-say',
@@ -151,6 +181,7 @@ async function main() {
     `
       INSERT INTO consultations (
         id,
+        tenant_id,
         patient_profile_id,
         status,
         specialty,
@@ -162,11 +193,12 @@ async function main() {
         updated_at
       )
       VALUES
-        ($1, $2, 'scheduled', $3, $4, NOW() + INTERVAL '1 day', $5, $6, NOW(), NOW()),
-        ($7, $2, 'completed', $8, $9, NOW() - INTERVAL '7 day', $10, $11, NOW(), NOW())
+        ($1, $2, $3, 'scheduled', $4, $5, NOW() + INTERVAL '1 day', $6, $7, NOW(), NOW()),
+        ($8, $2, $3, 'completed', $9, $10, NOW() - INTERVAL '7 day', $11, $12, NOW(), NOW())
     `,
     [
       randomUUID(),
+      tenantId,
       patientProfileId,
       'Cardiology',
       'Dr. Sarah Chen',

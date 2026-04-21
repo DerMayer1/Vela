@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
 import { ZodError } from 'zod'
 import { db } from '@/lib/db'
@@ -16,7 +16,12 @@ export async function GET() {
   const [patient] = await db
     .select({ id: patientProfiles.id })
     .from(patientProfiles)
-    .where(eq(patientProfiles.userId, sessionUser.id))
+    .where(
+      and(
+        eq(patientProfiles.userId, sessionUser.id),
+        eq(patientProfiles.tenantId, sessionUser.tenantId)
+      )
+    )
     .limit(1)
 
   if (!patient) {
@@ -29,18 +34,25 @@ export async function GET() {
       id: consultations.id,
       notes: consultations.notes,
       physicianName: consultations.physicianName,
+      prescription: consultations.prescription,
       scheduledAt: consultations.scheduledAt,
       specialty: consultations.specialty,
       status: consultations.status
     })
     .from(consultations)
-    .where(eq(consultations.patientProfileId, patient.id))
+    .where(
+      and(
+        eq(consultations.patientProfileId, patient.id),
+        eq(consultations.tenantId, sessionUser.tenantId)
+      )
+    )
     .orderBy(consultations.scheduledAt)
 
   return NextResponse.json({
     data: records.map((record) => ({
       ...record,
       notes: record.notes ?? null,
+      prescription: record.prescription ?? null,
       scheduledAt: record.scheduledAt.toISOString()
     }))
   })
@@ -60,7 +72,12 @@ export async function POST(request: Request) {
     const [patient] = await db
       .select({ id: patientProfiles.id })
       .from(patientProfiles)
-      .where(eq(patientProfiles.userId, sessionUser.id))
+      .where(
+        and(
+          eq(patientProfiles.userId, sessionUser.id),
+          eq(patientProfiles.tenantId, sessionUser.tenantId)
+        )
+      )
       .limit(1)
 
     if (!patient) {
@@ -74,13 +91,15 @@ export async function POST(request: Request) {
         patientProfileId: patient.id,
         physicianName: validatedBody.physicianName,
         scheduledAt: new Date(validatedBody.scheduledAt),
-        specialty: validatedBody.specialty
+        specialty: validatedBody.specialty,
+        tenantId: sessionUser.tenantId
       })
       .returning({
         chiefComplaint: consultations.chiefComplaint,
         id: consultations.id,
         notes: consultations.notes,
         physicianName: consultations.physicianName,
+        prescription: consultations.prescription,
         scheduledAt: consultations.scheduledAt,
         specialty: consultations.specialty,
         status: consultations.status
@@ -95,6 +114,7 @@ export async function POST(request: Request) {
         data: {
           ...consultation,
           notes: consultation.notes ?? null,
+          prescription: consultation.prescription ?? null,
           scheduledAt: consultation.scheduledAt.toISOString()
         }
       },

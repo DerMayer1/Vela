@@ -7,8 +7,8 @@ interface AvatarProps {
 }
 
 const sizeClasses = {
-  sm: 'h-8 w-8 text-xs',
-  md: 'h-10 w-10 text-sm',
+  sm: 'h-9 w-9 text-xs',
+  md: 'h-11 w-11 text-sm',
   lg: 'h-16 w-16 text-lg'
 }
 
@@ -26,7 +26,7 @@ export function Avatar({ className, name, size = 'md' }: AvatarProps) {
     <span
       aria-label={name}
       className={cn(
-        'inline-flex shrink-0 items-center justify-center rounded-full bg-primary-light font-medium text-primary',
+        'inline-flex shrink-0 items-center justify-center rounded-full bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.94),_transparent_48%),linear-gradient(135deg,_rgb(var(--color-primary-light)),_rgb(var(--color-accent-soft)))] font-semibold text-primary shadow-[0_12px_24px_rgba(10,24,49,0.08)] ring-1 ring-white/88',
         sizeClasses[size],
         className
       )}

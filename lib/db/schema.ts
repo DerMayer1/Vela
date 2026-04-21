@@ -5,6 +5,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   uuid
 } from 'drizzle-orm/pg-core'
 
@@ -22,18 +23,45 @@ export const consultationStatusEnum = pgEnum('consultation_status', [
   'cancelled'
 ])
 
-export const users = pgTable('users', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  firstName: text('first_name').notNull(),
-  lastName: text('last_name').notNull(),
-  email: text('email').notNull().unique(),
-  passwordHash: text('password_hash').notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
-})
+export const tenants = pgTable(
+  'tenants',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    slug: text('slug').notNull(),
+    name: text('name').notNull(),
+    primaryColor: text('primary_color').default('#0A6EBD').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => ({
+    slugUnique: uniqueIndex('tenants_slug_unique').on(table.slug)
+  })
+)
+
+export const users = pgTable(
+  'users',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'restrict' }),
+    firstName: text('first_name').notNull(),
+    lastName: text('last_name').notNull(),
+    email: text('email').notNull(),
+    passwordHash: text('password_hash').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => ({
+    tenantEmailUnique: uniqueIndex('users_tenant_email_unique').on(table.tenantId, table.email)
+  })
+)
 
 export const patientProfiles = pgTable('patient_profiles', {
   id: uuid('id').defaultRandom().primaryKey(),
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .references(() => tenants.id, { onDelete: 'cascade' }),
   userId: uuid('user_id')
     .notNull()
     .unique()
@@ -64,6 +92,9 @@ export const patientProfiles = pgTable('patient_profiles', {
 
 export const consultations = pgTable('consultations', {
   id: uuid('id').defaultRandom().primaryKey(),
+  tenantId: uuid('tenant_id')
+    .notNull()
+    .references(() => tenants.id, { onDelete: 'cascade' }),
   patientProfileId: uuid('patient_profile_id')
     .notNull()
     .references(() => patientProfiles.id, { onDelete: 'cascade' }),
@@ -73,6 +104,7 @@ export const consultations = pgTable('consultations', {
   scheduledAt: timestamp('scheduled_at', { withTimezone: true }).notNull(),
   chiefComplaint: text('chief_complaint').notNull(),
   notes: text('notes'),
+  prescription: text('prescription'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
 })

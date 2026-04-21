@@ -5,10 +5,8 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: vela_health
-      POSTGRES_HOST_AUTH_METHOD: trust
-      POSTGRES_INITDB_ARGS: --auth-host=trust --auth-local=trust
     ports:
-      - '127.0.0.1:65432:5432'
+      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
 

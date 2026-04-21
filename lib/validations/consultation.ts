@@ -20,11 +20,16 @@ export const createConsultationSchema = z.object({
 export const updateConsultationSchema = z
   .object({
     notes: z.string().trim().max(5000, 'Notes are too long').optional(),
+    prescription: z.string().trim().max(5000, 'Prescription is too long').optional(),
     status: consultationStatusSchema.optional()
   })
-  .refine((value) => value.notes !== undefined || value.status !== undefined, {
-    message: 'Provide notes or status'
-  })
+  .refine(
+    (value) =>
+      value.notes !== undefined || value.prescription !== undefined || value.status !== undefined,
+    {
+      message: 'Provide notes, prescription, or status'
+    }
+  )
 
 export const consultationNotesSchema = z.object({
   notes: z.string().trim().max(5000, 'Notes are too long')

@@ -33,11 +33,11 @@ export function OnboardingStepSymptoms() {
 
       <div className="grid gap-4 md:grid-cols-2">
         <label className="flex w-full flex-col gap-2" htmlFor="duration">
-          <span className="text-label text-text-secondary">
+          <span className="text-label uppercase tracking-[0.16em] text-text-secondary">
             How long have you had these symptoms?
           </span>
           <select
-            className="h-10 rounded-lg border border-border bg-surface-inset px-3 text-body text-text-primary focus:border-primary focus:ring-2 focus:ring-primary/20"
+            className="h-[52px] rounded-[20px] border border-border/78 bg-[linear-gradient(180deg,_rgba(255,255,255,0.86),_rgba(244,248,255,0.92))] px-4 text-body text-text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_10px_24px_rgba(10,24,49,0.05)] backdrop-blur-[10px] focus:border-primary/28 focus:outline-none focus:ring-4 focus:ring-primary/12"
             id="duration"
             {...register('duration')}
           >
@@ -52,11 +52,14 @@ export function OnboardingStepSymptoms() {
         </label>
 
         <div className="flex flex-col gap-2">
-          <span className="text-label text-text-secondary">Severity</span>
+          <span className="text-label uppercase tracking-[0.16em] text-text-secondary">
+            Severity
+          </span>
           <div className="grid grid-cols-3 gap-2">
             {severityOptions.map((option) => (
               <Button
                 key={option}
+                className="w-full"
                 onClick={() =>
                   setValue('severity', option, {
                     shouldDirty: true,
@@ -65,6 +68,7 @@ export function OnboardingStepSymptoms() {
                   })
                 }
                 type="button"
+                size="sm"
                 variant={severity === option ? 'primary' : 'secondary'}
               >
                 {option.charAt(0).toUpperCase() + option.slice(1)}

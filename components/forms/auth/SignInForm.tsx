@@ -60,9 +60,8 @@ export function SignInForm() {
         {...register('password')}
       />
 
-      <div className="flex items-center justify-between gap-4">
-        <span className="text-sm text-text-tertiary">Forgot password?</span>
-        <span className="text-sm text-text-tertiary">Not in scope yet</span>
+      <div className="flex items-center justify-end gap-4">
+        <span className="text-sm text-text-tertiary">Need password support?</span>
       </div>
 
       {formError ? (

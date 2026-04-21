@@ -51,9 +51,9 @@ export function OnboardingWizard() {
 
   const stepItems = useMemo(
     () => [
-      { description: 'Personal info', label: 'Step 1' },
-      { description: 'Symptoms', label: 'Step 2' },
-      { description: 'Medical history', label: 'Step 3' }
+      { description: 'Identity and contact', label: 'Personal details' },
+      { description: 'Current reason for care', label: 'Symptoms' },
+      { description: 'History and risk factors', label: 'Medical history' }
     ],
     []
   )
@@ -108,7 +108,7 @@ export function OnboardingWizard() {
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-8">
       <SectionHeading
-        description="This onboarding flow now validates with Zod, uses React Hook Form for input state, persists to PostgreSQL, and resumes from saved data."
+        description="Complete identity, symptom and medical history details so care teams receive the right context before the first visit."
         eyebrow="Onboarding"
         title="Complete your patient profile"
       />
@@ -117,7 +117,7 @@ export function OnboardingWizard() {
         <Stepper currentStep={currentStep} items={stepItems} />
 
         {isLoading ? (
-          <div className="rounded-xl border border-border bg-surface-raised p-6 text-body text-text-secondary">
+          <div className="panel-quiet rounded-[24px] p-6 text-body text-text-secondary">
             Loading your onboarding progress...
           </div>
         ) : (

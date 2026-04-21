@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { patientProfiles, users } from '@/lib/db/schema'
@@ -30,8 +30,16 @@ export async function GET() {
       symptomSeverity: patientProfiles.symptomSeverity
     })
     .from(patientProfiles)
-    .innerJoin(users, eq(users.id, patientProfiles.userId))
-    .where(eq(patientProfiles.userId, sessionUser.id))
+    .innerJoin(
+      users,
+      and(eq(users.id, patientProfiles.userId), eq(users.tenantId, patientProfiles.tenantId))
+    )
+    .where(
+      and(
+        eq(patientProfiles.userId, sessionUser.id),
+        eq(patientProfiles.tenantId, sessionUser.tenantId)
+      )
+    )
     .limit(1)
 
   if (!patient) {

@@ -52,7 +52,7 @@ export function OnboardingStepMedicalHistory() {
         )}
       />
 
-      <label className="flex items-center justify-between gap-4 rounded-xl border border-border bg-surface-raised px-4 py-4">
+      <label className="panel-quiet flex items-center justify-between gap-4 rounded-[24px] px-4 py-4">
         <span>
           <span className="block font-medium text-text-primary">
             Recent surgery in the last 6 months

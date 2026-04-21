@@ -1,4 +1,4 @@
-import { type InferInsertModel, eq } from 'drizzle-orm'
+import { type InferInsertModel, and, eq } from 'drizzle-orm'
 import { NextResponse } from 'next/server'
 import { ZodError } from 'zod'
 import { db } from '@/lib/db'
@@ -33,8 +33,16 @@ export async function GET() {
       severity: patientProfiles.symptomSeverity
     })
     .from(patientProfiles)
-    .innerJoin(users, eq(users.id, patientProfiles.userId))
-    .where(eq(patientProfiles.userId, sessionUser.id))
+    .innerJoin(
+      users,
+      and(eq(users.id, patientProfiles.userId), eq(users.tenantId, patientProfiles.tenantId))
+    )
+    .where(
+      and(
+        eq(patientProfiles.userId, sessionUser.id),
+        eq(patientProfiles.tenantId, sessionUser.tenantId)
+      )
+    )
     .limit(1)
 
   return NextResponse.json({
@@ -69,8 +77,16 @@ export async function PATCH(request: Request) {
         severity: patientProfiles.symptomSeverity
       })
       .from(patientProfiles)
-      .innerJoin(users, eq(users.id, patientProfiles.userId))
-      .where(eq(patientProfiles.userId, sessionUser.id))
+      .innerJoin(
+        users,
+        and(eq(users.id, patientProfiles.userId), eq(users.tenantId, patientProfiles.tenantId))
+      )
+      .where(
+        and(
+          eq(patientProfiles.userId, sessionUser.id),
+          eq(patientProfiles.tenantId, sessionUser.tenantId)
+        )
+      )
       .limit(1)
 
     if (!currentRecord) {
@@ -152,13 +168,18 @@ export async function PATCH(request: Request) {
         await tx
           .update(users)
           .set(userUpdatePayload)
-          .where(eq(users.id, sessionUser.id))
+          .where(and(eq(users.id, sessionUser.id), eq(users.tenantId, sessionUser.tenantId)))
       }
 
       await tx
         .update(patientProfiles)
         .set(profileUpdatePayload)
-        .where(eq(patientProfiles.userId, sessionUser.id))
+        .where(
+          and(
+            eq(patientProfiles.userId, sessionUser.id),
+            eq(patientProfiles.tenantId, sessionUser.tenantId)
+          )
+        )
     })
 
     return NextResponse.json({

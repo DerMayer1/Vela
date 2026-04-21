@@ -8,8 +8,8 @@ interface CardProps {
 }
 
 const paddingClasses = {
-  compact: 'p-4',
-  default: 'p-6',
+  compact: 'p-5 sm:p-6',
+  default: 'p-6 sm:p-7 md:p-8',
   none: 'p-0'
 }
 
@@ -22,10 +22,10 @@ export function Card({
   return (
     <div
       className={cn(
-        'rounded-xl border border-border bg-surface shadow-sm',
+        'rounded-[30px] border border-border/80 bg-[linear-gradient(180deg,_rgba(255,255,255,0.94),_rgba(245,249,255,0.92))] shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_18px_40px_rgba(10,24,49,0.08)] backdrop-blur-[18px]',
         paddingClasses[padding],
         interactive &&
-          'transition hover:border-border-strong hover:shadow-md motion-reduce:transition-none',
+          'cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:border-border-strong hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.94),0_24px_48px_rgba(10,24,49,0.1)]',
         className
       )}
     >

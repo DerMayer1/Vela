@@ -1,68 +1,72 @@
+'use client'
+
 import Link from 'next/link'
-import { Bell, Menu, Stethoscope } from 'lucide-react'
+import { HeartPulse, LayoutGrid, Sparkles } from 'lucide-react'
 import { AuthenticatedUserPanel } from '@/components/auth/AuthenticatedUserPanel'
-import { buttonVariants } from '@/components/ui'
-import { Badge } from '@/components/ui'
+import { Badge, buttonVariants } from '@/components/ui'
+import { useTenant } from '@/hooks/useTenant'
 
 export function AppHeader() {
+  const tenant = useTenant()
+
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-surface/90 backdrop-blur">
-      <div className="flex items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-10">
+    <header className="sticky top-0 z-30 px-3 pt-3 sm:px-6 sm:pt-5 lg:px-8">
+      <div className="floating-glass mx-auto flex items-center justify-between gap-4 rounded-[28px] px-4 py-4 sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
           <Link
-            className="flex items-center gap-2 text-text-primary lg:hidden"
+            className="flex items-center gap-3 text-text-primary lg:hidden"
             href="/dashboard"
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-text-inverse shadow-sm">
-              <Stethoscope className="h-5 w-5" />
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,_rgb(var(--color-primary)),_rgb(var(--color-primary-hover)))] text-text-inverse shadow-md">
+              <HeartPulse className="h-5 w-5" />
             </span>
             <span className="min-w-0">
-              <span className="block truncate font-display text-h3 leading-none">
-                Vela
+              <span className="block truncate font-display text-h3 leading-none tracking-tight">
+                {tenant.name}
               </span>
-              <span className="block truncate pt-1 text-xs text-text-secondary">
-                Patient workspace
+              <span className="block truncate pt-1 text-xs uppercase tracking-[0.14em] text-text-secondary">
+                care cloud
               </span>
             </span>
           </Link>
 
           <div className="hidden min-w-0 lg:block">
-            <p className="text-sm text-text-tertiary">Patient Workspace</p>
-            <h1 className="truncate font-display text-h3 text-text-primary">
-              Vela Health
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-tertiary">
+              Daily care operations
+            </p>
+            <h1 className="truncate pt-1 font-display text-h2 tracking-tight text-text-primary">
+              {tenant.name}
             </h1>
           </div>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
           <Badge className="hidden sm:inline-flex" variant="info">
-            UI Foundation
+            Patient workspace
           </Badge>
-          <button
-            aria-label="Notifications"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface-raised text-text-secondary transition hover:border-border-strong hover:text-text-primary"
-            type="button"
+          <Link
+            className={buttonVariants({
+              className: 'hidden md:inline-flex',
+              size: 'sm',
+              variant: 'secondary'
+            })}
+            href="/dashboard"
           >
-            <Bell className="h-4 w-4" />
-          </button>
+            <LayoutGrid className="h-4 w-4" />
+            Overview
+          </Link>
           <Link
             className={buttonVariants({
               className: 'hidden sm:inline-flex',
               size: 'sm',
-              variant: 'secondary'
+              variant: 'primary'
             })}
-            href="/consultations"
+            href="/consultations/new"
           >
-            View Consultations
+            <Sparkles className="h-4 w-4" />
+            Book consultation
           </Link>
           <AuthenticatedUserPanel />
-          <button
-            aria-label="Open navigation"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface-raised text-text-secondary transition hover:border-border-strong hover:text-text-primary lg:hidden"
-            type="button"
-          >
-            <Menu className="h-4 w-4" />
-          </button>
         </div>
       </div>
     </header>

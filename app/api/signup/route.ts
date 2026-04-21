@@ -3,6 +3,7 @@ import { ZodError } from 'zod'
 import { db } from '@/lib/db'
 import { patientProfiles, users } from '@/lib/db/schema'
 import { hashPassword } from '@/lib/auth/password'
+import { resolveTenantFromRequest } from '@/lib/tenant/server'
 import { signUpSchema } from '@/lib/validations/auth'
 
 interface PostgresError extends Error {
@@ -17,6 +18,12 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
     const validatedBody = signUpSchema.parse(body)
+    const tenant = await resolveTenantFromRequest(request)
+
+    if (!tenant) {
+      return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
+    }
+
     const passwordHash = await hashPassword(validatedBody.password)
 
     const createdUser = await db.transaction(async (tx) => {
@@ -26,7 +33,8 @@ export async function POST(request: Request) {
           email: validatedBody.email,
           firstName: validatedBody.firstName,
           lastName: validatedBody.lastName,
-          passwordHash
+          passwordHash,
+          tenantId: tenant.id
         })
         .returning({
           email: users.email,
@@ -40,6 +48,7 @@ export async function POST(request: Request) {
       }
 
       await tx.insert(patientProfiles).values({
+        tenantId: tenant.id,
         userId: user.id
       })
 

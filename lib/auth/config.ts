@@ -24,6 +24,8 @@ export const authConfig = {
         }
 
         token.onboardingCompleted = user.onboardingCompleted
+        token.tenantId = user.tenantId
+        token.tenantSlug = user.tenantSlug
       }
 
       if (trigger === 'update' && session?.user) {
@@ -31,6 +33,8 @@ export const authConfig = {
         token.email = session.user.email ?? token.email
         token.onboardingCompleted =
           session.user.onboardingCompleted ?? token.onboardingCompleted
+        token.tenantId = session.user.tenantId || token.tenantId
+        token.tenantSlug = session.user.tenantSlug || token.tenantSlug
       }
 
       return token
@@ -45,6 +49,9 @@ export const authConfig = {
         }
 
         session.user.onboardingCompleted = Boolean(token.onboardingCompleted)
+        session.user.tenantId = typeof token.tenantId === 'string' ? token.tenantId : ''
+        session.user.tenantSlug =
+          typeof token.tenantSlug === 'string' ? token.tenantSlug : ''
       }
 
       return session

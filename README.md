@@ -2,7 +2,7 @@
 
 Vela Health is a patient-first telehealth platform built with Next.js, TypeScript, and PostgreSQL, focused on a clean onboarding, scheduling, and consultation workflow.
 
-This repository contains the MVP foundation and product flows implemented across phases 0-3.
+This repository contains the patient-facing MVP with authentication, intake, scheduling, dashboard, profile and consultation room flows.
 
 ## Stack
 
@@ -29,14 +29,16 @@ This repository contains the MVP foundation and product flows implemented across
 
 ```bash
 pnpm install
-copy .env.example .env.local
+cp .env.example .env.local
 docker compose up -d
 pnpm db:migrate
 pnpm db:seed
 pnpm dev
 ```
 
-The local PostgreSQL container is published on `127.0.0.1:65432`.
+Windows CMD can use `copy .env.example .env.local`.
+
+The default local PostgreSQL container is published on `127.0.0.1:5432`.
 
 ## Architecture
 

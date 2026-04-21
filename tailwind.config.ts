@@ -13,9 +13,15 @@ const config: Config = {
         primary: 'rgb(var(--color-primary) / <alpha-value>)',
         'primary-hover': 'rgb(var(--color-primary-hover) / <alpha-value>)',
         'primary-light': 'rgb(var(--color-primary-light) / <alpha-value>)',
+        'primary-soft': 'rgb(var(--color-primary-soft) / <alpha-value>)',
+        accent: 'rgb(var(--color-accent) / <alpha-value>)',
+        'accent-light': 'rgb(var(--color-accent-light) / <alpha-value>)',
+        'accent-soft': 'rgb(var(--color-accent-soft) / <alpha-value>)',
         surface: 'rgb(var(--color-surface) / <alpha-value>)',
         'surface-raised': 'rgb(var(--color-surface-raised) / <alpha-value>)',
         'surface-inset': 'rgb(var(--color-surface-inset) / <alpha-value>)',
+        'surface-dark': 'rgb(var(--color-surface-dark) / <alpha-value>)',
+        'surface-dark-soft': 'rgb(var(--color-surface-dark-soft) / <alpha-value>)',
         border: 'rgb(var(--color-border) / <alpha-value>)',
         'border-strong': 'rgb(var(--color-border-strong) / <alpha-value>)',
         text: {
@@ -45,23 +51,25 @@ const config: Config = {
         display: ['var(--font-display)']
       },
       fontSize: {
-        display: ['48px', { lineHeight: '1.1', fontWeight: '600' }],
-        h1: ['32px', { lineHeight: '1.2', fontWeight: '600' }],
-        h2: ['24px', { lineHeight: '1.3', fontWeight: '600' }],
-        h3: ['18px', { lineHeight: '1.4', fontWeight: '500' }],
-        'body-lg': ['16px', { lineHeight: '1.6' }],
-        body: ['14px', { lineHeight: '1.5' }],
+        display: ['clamp(3.35rem, 7vw, 6rem)', { lineHeight: '0.94', fontWeight: '650' }],
+        h1: ['clamp(2.3rem, 4vw, 3.7rem)', { lineHeight: '1', fontWeight: '650' }],
+        h2: ['clamp(1.65rem, 2.5vw, 2.5rem)', { lineHeight: '1.06', fontWeight: '600' }],
+        h3: ['clamp(1.05rem, 1.5vw, 1.35rem)', { lineHeight: '1.28', fontWeight: '600' }],
+        'body-lg': ['1.0625rem', { lineHeight: '1.7' }],
+        body: ['15px', { lineHeight: '1.55' }],
         sm: ['13px', { lineHeight: '1.4' }],
         xs: ['12px', { lineHeight: '1.3' }],
         label: ['12px', { lineHeight: '1.3', fontWeight: '500' }]
       },
       borderRadius: {
-        lg: '8px',
-        xl: '12px'
+        lg: '16px',
+        xl: '24px',
+        '2xl': '32px'
       },
       boxShadow: {
-        sm: '0 1px 2px rgba(0, 0, 0, 0.05)',
-        md: '0 4px 12px rgba(15, 23, 42, 0.08)'
+        sm: '0 10px 28px rgba(10, 24, 49, 0.06)',
+        md: '0 22px 54px rgba(10, 24, 49, 0.12)',
+        lg: '0 40px 96px rgba(10, 24, 49, 0.18)'
       }
     }
   },

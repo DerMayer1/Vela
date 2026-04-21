@@ -13,13 +13,16 @@ interface TabsProps {
   activeValue: string
   className?: string
   items: TabItem[]
+  onValueChange?: ((value: string) => void) | undefined
 }
 
-export function Tabs({ activeValue, className, items }: TabsProps) {
+export function Tabs({ activeValue, className, items, onValueChange }: TabsProps) {
+  const hasInteractiveTabs = items.some((item) => Boolean(item.href)) || Boolean(onValueChange)
+
   return (
     <div
       className={cn(
-        'inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-xl border border-border bg-surface-raised p-1',
+        'floating-glass inline-flex max-w-full items-center gap-1.5 overflow-x-auto rounded-[22px] p-1.5',
         className
       )}
     >
@@ -38,10 +41,10 @@ export function Tabs({ activeValue, className, items }: TabsProps) {
             <Link
               key={item.value}
               className={cn(
-                'inline-flex h-10 items-center gap-2 rounded-lg px-4 text-sm font-medium transition',
+                'inline-flex h-11 items-center gap-2 rounded-[18px] px-4 text-sm font-semibold transition-all duration-300',
                 active
-                  ? 'bg-surface text-text-primary shadow-sm'
-                  : 'text-text-secondary hover:text-text-primary'
+                  ? 'border border-primary-hover/80 bg-[linear-gradient(135deg,_rgb(var(--color-primary)),_rgb(var(--color-primary-hover)))] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.16),0_14px_28px_rgba(28,92,255,0.24)]'
+                  : 'text-text-secondary hover:bg-primary-soft hover:text-text-primary'
               )}
               href={item.href}
             >
@@ -51,17 +54,20 @@ export function Tabs({ activeValue, className, items }: TabsProps) {
         }
 
         return (
-          <span
+          <button
             key={item.value}
             className={cn(
-              'inline-flex h-10 items-center gap-2 rounded-lg px-4 text-sm font-medium',
+              'inline-flex h-11 items-center gap-2 rounded-[18px] px-4 text-sm font-semibold transition-all duration-300',
               active
-                ? 'bg-surface text-text-primary shadow-sm'
-                : 'text-text-secondary'
+                ? 'border border-primary-hover/80 bg-[linear-gradient(135deg,_rgb(var(--color-primary)),_rgb(var(--color-primary-hover)))] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.16),0_14px_28px_rgba(28,92,255,0.24)]'
+                : 'text-text-secondary hover:bg-primary-soft hover:text-text-primary'
             )}
+            onClick={() => onValueChange?.(item.value)}
+            role={hasInteractiveTabs ? 'tab' : undefined}
+            type="button"
           >
             {content}
-          </span>
+          </button>
         )
       })}
     </div>
