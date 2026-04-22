@@ -38,11 +38,11 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="page-shell min-h-screen" style={tenantStyleOverrides}>
-      <div className="relative mx-auto min-h-screen w-full max-w-[1680px] lg:grid lg:grid-cols-[auto_1fr]">
+      <div className="relative mx-auto min-h-screen w-full max-w-[1620px] lg:grid lg:grid-cols-[auto_1fr] lg:gap-4 lg:px-4">
         <Sidebar />
         <div className="flex min-h-screen min-w-0 flex-col">
           <AppHeader />
-          <main className="relative flex-1 px-3 pb-28 pt-5 sm:px-6 lg:px-8 lg:pb-10 lg:pt-7">
+          <main className="relative flex-1 px-3 pb-28 pt-5 sm:px-6 lg:px-4 lg:pb-10 lg:pt-5">
             <PageTransition>{children}</PageTransition>
           </main>
           <BottomNav />

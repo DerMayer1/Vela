@@ -10,8 +10,8 @@ export function AppHeader() {
   const tenant = useTenant()
 
   return (
-    <header className="sticky top-0 z-30 px-3 pt-3 sm:px-6 sm:pt-5 lg:px-8">
-      <div className="floating-glass mx-auto flex items-center justify-between gap-4 rounded-[28px] px-4 py-4 sm:px-6">
+    <header className="sticky top-0 z-30 px-3 pt-3 sm:px-6 sm:pt-4 lg:px-4">
+      <div className="mx-auto flex items-center justify-between gap-4 rounded-[24px] border border-white/70 bg-white/86 px-4 py-3 shadow-[0_16px_34px_rgba(10,24,49,0.06)] backdrop-blur-xl sm:px-5">
         <div className="flex min-w-0 items-center gap-3">
           <Link
             className="flex items-center gap-3 text-text-primary lg:hidden"
@@ -30,23 +30,23 @@ export function AppHeader() {
             </span>
           </Link>
 
-          <div className="hidden min-w-0 lg:block">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-tertiary">
-              Daily care operations
-            </p>
-            <h1 className="truncate pt-1 font-display text-h2 tracking-tight text-text-primary">
+          <div className="hidden min-w-0 lg:flex lg:flex-col">
+            <span className="text-xs font-semibold uppercase tracking-[0.16em] text-text-tertiary">
+              Patient workspace
+            </span>
+            <span className="pt-1 text-base font-semibold tracking-[-0.02em] text-text-primary">
               {tenant.name}
-            </h1>
+            </span>
           </div>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <Badge className="hidden sm:inline-flex" variant="info">
-            Patient workspace
+          <Badge className="hidden md:inline-flex shadow-none" variant="info">
+            Care overview
           </Badge>
           <Link
             className={buttonVariants({
-              className: 'hidden md:inline-flex',
+              className: 'hidden md:inline-flex rounded-[16px]',
               size: 'sm',
               variant: 'secondary'
             })}
@@ -57,14 +57,14 @@ export function AppHeader() {
           </Link>
           <Link
             className={buttonVariants({
-              className: 'hidden sm:inline-flex',
+              className: 'hidden sm:inline-flex rounded-[16px] text-white hover:text-white',
               size: 'sm',
               variant: 'primary'
             })}
             href="/consultations/new"
           >
             <Sparkles className="h-4 w-4" />
-            Book consultation
+            New consultation
           </Link>
           <AuthenticatedUserPanel />
         </div>

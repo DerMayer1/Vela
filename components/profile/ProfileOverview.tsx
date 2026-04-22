@@ -46,9 +46,9 @@ export function ProfileOverview() {
         title="Patient profile"
       />
 
-      <Card className="overflow-hidden p-0">
-        <div className="grid gap-0 lg:grid-cols-[0.92fr_1.08fr]">
-          <div className="dark-aurora flex flex-col justify-between gap-8 p-8 text-white">
+      <div className="grid gap-4 xl:grid-cols-[1.02fr_0.98fr]">
+        <Card className="bg-[linear-gradient(160deg,_#163257_0%,_#11284a_100%)] text-white shadow-[0_28px_60px_rgba(10,24,49,0.18)]">
+          <div className="flex h-full flex-col justify-between gap-8">
             <div className="space-y-5">
               <Badge className="bg-white/10 text-white" variant="default">
                 Patient identity
@@ -56,8 +56,10 @@ export function ProfileOverview() {
               <div className="flex items-center gap-4">
                 <Avatar className="bg-white/92 text-primary ring-0" name={displayName} size="lg" />
                 <div>
-                  <h2 className="font-display text-h1 text-white">{displayName}</h2>
-                  <p className="text-body-lg text-white/68">Patient record for Vela Health</p>
+                  <h2 className="font-display text-[clamp(2.8rem,4.3vw,4.3rem)] leading-[0.94] tracking-[-0.05em] text-white">
+                    {displayName}
+                  </h2>
+                  <p className="text-[1rem] leading-7 text-white/68">Patient record for Vela Health</p>
                 </div>
               </div>
             </div>
@@ -79,17 +81,20 @@ export function ProfileOverview() {
               </div>
             </div>
           </div>
+        </Card>
 
-          <div className="flex flex-col gap-4 bg-[linear-gradient(180deg,_rgba(245,249,255,0.9),_rgba(255,255,255,0.98))] p-8">
+        <div className="grid gap-4">
+          <Card className="border-[#dbe4ef]" padding="compact">
             <div className="flex flex-wrap gap-2">
               <Badge variant={patient.onboardingCompleted ? 'success' : 'info'}>
                 {patient.onboardingCompleted ? 'Ready for care' : 'Profile pending'}
               </Badge>
               <Badge variant="default">{patient.email}</Badge>
             </div>
+          </Card>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="panel-quiet rounded-[26px] p-5">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Card className="border-[#dbe4ef]" padding="compact">
                 <div className="flex items-center gap-3">
                   <Phone className="h-5 w-5 text-primary" />
                   <div>
@@ -101,9 +106,9 @@ export function ProfileOverview() {
                     </p>
                   </div>
                 </div>
-              </div>
+            </Card>
 
-              <div className="panel-quiet rounded-[26px] p-5">
+            <Card className="border-[#dbe4ef]" padding="compact">
                 <div className="flex items-center gap-3">
                   <UserRound className="h-5 w-5 text-primary" />
                   <div>
@@ -115,11 +120,11 @@ export function ProfileOverview() {
                     </p>
                   </div>
                 </div>
-              </div>
-            </div>
+            </Card>
+          </div>
 
-            <div className="grid gap-4 lg:grid-cols-2">
-              <div className="panel-quiet rounded-[26px] p-5">
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Card className="border-[#dbe4ef]" padding="compact">
                 <div className="flex items-center gap-3">
                   <HeartPulse className="h-5 w-5 text-primary" />
                   <div>
@@ -146,9 +151,9 @@ export function ProfileOverview() {
                     </p>
                   </div>
                 </div>
-              </div>
+            </Card>
 
-              <div className="panel-quiet rounded-[26px] p-5">
+            <Card className="border-[#dbe4ef]" padding="compact">
                 <div className="flex items-center gap-3">
                   <FileStack className="h-5 w-5 text-primary" />
                   <div>
@@ -183,11 +188,10 @@ export function ProfileOverview() {
                     </p>
                   </div>
                 </div>
-              </div>
-            </div>
+            </Card>
           </div>
         </div>
-      </Card>
+      </div>
     </div>
   )
 }

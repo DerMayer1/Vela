@@ -13,7 +13,7 @@ interface StepperProps {
 
 export function Stepper({ className, currentStep, items }: StepperProps) {
   return (
-    <ol className={cn('grid gap-4 lg:grid-cols-3', className)}>
+    <ol className={cn('grid gap-3 md:grid-cols-2 xl:grid-cols-4', className)}>
       {items.map((item, index) => {
         const stepNumber = index + 1
         const complete = stepNumber < currentStep
@@ -23,7 +23,7 @@ export function Stepper({ className, currentStep, items }: StepperProps) {
           <li
             key={item.label}
             className={cn(
-              'flex min-w-0 items-center gap-4 rounded-[24px] border px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.92),0_12px_24px_rgba(10,24,49,0.05)] backdrop-blur-[14px]',
+              'flex min-w-0 items-center gap-4 rounded-[22px] border px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.92),0_12px_24px_rgba(10,24,49,0.05)] backdrop-blur-[14px]',
               active
                 ? 'border-primary/24 bg-[linear-gradient(180deg,_rgba(242,247,255,0.96),_rgba(228,237,255,0.92))]'
                 : 'border-border/70 bg-[linear-gradient(180deg,_rgba(255,255,255,0.88),_rgba(243,248,255,0.84))]'
@@ -49,7 +49,7 @@ export function Stepper({ className, currentStep, items }: StepperProps) {
                 {item.label}
               </span>
               {item.description ? (
-                <span className="block truncate pt-1 text-xs uppercase tracking-[0.12em] text-text-tertiary">
+                <span className="block pt-1 text-xs uppercase tracking-[0.12em] text-text-tertiary md:truncate">
                   {item.description}
                 </span>
               ) : null}

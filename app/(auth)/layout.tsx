@@ -1,11 +1,5 @@
 import Link from 'next/link'
-import {
-  Activity,
-  ArrowRight,
-  BadgeCheck,
-  CalendarClock,
-  ShieldCheck
-} from 'lucide-react'
+import { ArrowRight, CheckCircle2, ShieldCheck } from 'lucide-react'
 import { BrandMark } from '@/components/layout/BrandMark'
 import { Badge, buttonVariants } from '@/components/ui'
 import { PageTransition } from '@/components/motion/PageTransition'
@@ -14,112 +8,113 @@ interface AuthLayoutProps {
   children: React.ReactNode
 }
 
+const trustPoints = [
+  'Secure access to visits, records and next care actions',
+  'Clear continuation into dashboard or onboarding',
+  'One patient workspace across the care journey'
+]
+
 export default function AuthLayout({ children }: AuthLayoutProps) {
   return (
-    <div className="page-shell relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(28,92,255,0.18),_transparent_30%),radial-gradient(circle_at_80%_0%,_rgba(18,196,162,0.16),_transparent_22%),linear-gradient(180deg,_#f4f8ff_0%,_#fbfdff_100%)]">
-      <div className="absolute inset-0 app-grid opacity-30" />
-      <div className="absolute left-[-8%] top-[10%] h-72 w-72 rounded-full bg-primary/10 blur-[120px]" />
-      <div className="absolute right-[-5%] top-[8%] h-72 w-72 rounded-full bg-accent/10 blur-[140px]" />
-      <div className="relative mx-auto grid min-h-screen max-w-7xl gap-10 px-4 py-10 sm:px-6 lg:grid-cols-[1.08fr_0.92fr] lg:items-center lg:px-8">
-        <section className="hidden flex-col justify-center gap-8 lg:flex">
+    <div className="page-shell min-h-screen bg-[linear-gradient(180deg,_#f3f6fb_0%,_#f8fafc_100%)]">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(28,92,255,0.08),_transparent_22%),radial-gradient(circle_at_100%_0%,_rgba(18,196,162,0.06),_transparent_16%)]" />
+
+      <div className="relative mx-auto flex min-h-screen max-w-[1280px] flex-col px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
+        <header className="mb-8 flex items-center justify-between rounded-[24px] border border-white/70 bg-white/72 px-5 py-4 shadow-[0_14px_34px_rgba(10,24,49,0.05)] backdrop-blur-xl sm:px-6">
           <BrandMark href="/" />
-
-          <div className="space-y-4">
-            <Badge variant="info">Secure access for virtual care</Badge>
-            <h1 className="max-w-2xl font-display text-display text-text-primary">
-              Every patient touchpoint should feel calm, immediate and trustworthy.
-            </h1>
-            <p className="max-w-xl text-body-lg text-text-secondary">
-              Vela keeps identity, intake, scheduling and follow-up inside one premium flow so
-              patients move forward without second-guessing the product.
-            </p>
-          </div>
-
-          <div className="grid max-w-2xl gap-4 sm:grid-cols-3">
-            <div className="panel-quiet rounded-[28px] p-5">
-              <ShieldCheck className="h-5 w-5 text-primary" />
-              <h2 className="mt-4 text-h3 text-text-primary">Protected access</h2>
-              <p className="mt-2 text-body text-text-secondary">
-                Reassurance is visible before the patient even reaches the first field.
-              </p>
-            </div>
-            <div className="panel-quiet rounded-[28px] p-5">
-              <Activity className="h-5 w-5 text-accent" />
-              <h2 className="mt-4 text-h3 text-text-primary">Fast orientation</h2>
-              <p className="mt-2 text-body text-text-secondary">
-                Clear next steps reduce hesitation during sign in and onboarding.
-              </p>
-            </div>
-            <div className="panel-quiet rounded-[28px] p-5">
-              <CalendarClock className="h-5 w-5 text-primary" />
-              <h2 className="mt-4 text-h3 text-text-primary">Guided continuation</h2>
-              <p className="mt-4 text-body text-text-secondary">
-                Patients land in the next right action instead of a generic account page.
-              </p>
-            </div>
-          </div>
-
-          <div className="panel-soft max-w-2xl rounded-[30px] p-6">
-            <div className="flex items-start justify-between gap-6">
-              <div className="space-y-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-tertiary">
-                  Care promise
-                </p>
-                <p className="max-w-lg text-body-lg text-text-primary">
-                  Patients should feel like they entered a care platform, not a form funnel.
-                </p>
-              </div>
-              <BadgeCheck className="h-6 w-6 shrink-0 text-accent" />
-            </div>
-          </div>
-        </section>
-
-        <div className="mx-auto flex w-full max-w-md flex-col gap-6">
           <Link
-            className="inline-flex items-center gap-2 text-sm text-text-secondary transition hover:text-text-primary lg:hidden"
+            className="inline-flex items-center gap-2 text-sm text-text-secondary transition hover:text-text-primary"
             href="/"
           >
             <ArrowRight className="h-4 w-4 rotate-180 text-primary" />
-            Back to Vela Health
+            Back to home
           </Link>
-          <div className="floating-glass rounded-[32px] p-3">
-            <div className="rounded-[28px] border border-white/72 bg-[linear-gradient(180deg,_rgba(255,255,255,0.9),_rgba(246,250,255,0.94))] p-6 sm:p-7">
-              <div className="mb-6 flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-tertiary">
-                    Patient entry
-                  </p>
-                  <p className="pt-1 font-display text-h3 text-text-primary">Secure portal</p>
-                </div>
-                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-light text-primary">
-                  <ShieldCheck className="h-5 w-5" />
-                </span>
-              </div>
-              <PageTransition>{children}</PageTransition>
+        </header>
 
-              <div className="mt-6 rounded-[24px] border border-primary/10 bg-primary-soft/80 px-4 py-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-                  Need help?
-                </p>
-                <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-                  Patients continue directly to onboarding, consultation booking or their care
-                  dashboard after access is confirmed.
+        <main className="grid flex-1 items-center gap-8 lg:grid-cols-[0.92fr_1.08fr] lg:gap-12">
+          <section className="order-2 space-y-8 lg:order-1 lg:pr-8">
+            <div className="space-y-5">
+              <Badge className="bg-white text-text-primary shadow-none" variant="default">
+                Patient access
+              </Badge>
+
+              <div className="space-y-4">
+                <h1 className="max-w-[12ch] font-display text-[clamp(3rem,5vw,5.2rem)] leading-[0.94] tracking-[-0.05em] text-text-primary">
+                  Access care without friction.
+                </h1>
+                <p className="max-w-xl text-[1.05rem] leading-8 text-text-secondary">
+                  A calmer patient entry for visits, records and follow-up, designed to feel clear
+                  before it feels fast.
                 </p>
               </div>
             </div>
-          </div>
 
-          <Link
-            className={buttonVariants({
-              className: 'w-full lg:hidden',
-              size: 'lg',
-              variant: 'secondary'
-            })}
-            href="/signup"
-          >
-            Create account
-          </Link>
-        </div>
+            <div className="rounded-[28px] border border-[#dbe4ef] bg-white/78 p-6 shadow-[0_20px_44px_rgba(10,24,49,0.06)] backdrop-blur-xl">
+              <div className="flex items-center justify-between gap-4 border-b border-[#ebf0f6] pb-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-text-tertiary">
+                    Access standard
+                  </p>
+                  <p className="mt-2 text-[1.2rem] font-semibold text-text-primary">
+                    Secure portal for patients
+                  </p>
+                </div>
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-soft text-primary">
+                  <ShieldCheck className="h-5 w-5" />
+                </span>
+              </div>
+
+              <div className="mt-5 space-y-4">
+                {trustPoints.map((item) => (
+                  <div
+                    key={item}
+                    className="flex items-start gap-3 rounded-[18px] bg-[linear-gradient(180deg,_#fbfcfe_0%,_#f4f7fb_100%)] px-4 py-3"
+                  >
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                    <p className="text-sm leading-6 text-text-secondary">{item}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <section className="order-1 lg:order-2">
+            <div className="mx-auto max-w-[620px] rounded-[34px] border border-[#d8e1ee] bg-[linear-gradient(180deg,_rgba(255,255,255,0.98),_rgba(246,249,253,0.98))] p-3 shadow-[0_28px_70px_rgba(10,24,49,0.1)]">
+              <div className="rounded-[28px] border border-[#e3eaf3] bg-white">
+                <div className="flex items-center justify-between border-b border-[#ebf0f6] px-6 py-5 sm:px-8">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-text-tertiary">
+                      Patient entry
+                    </p>
+                    <p className="mt-1 text-[1.45rem] font-semibold tracking-[-0.03em] text-text-primary">
+                      Secure portal
+                    </p>
+                  </div>
+                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-soft text-primary">
+                    <ShieldCheck className="h-5 w-5" />
+                  </span>
+                </div>
+
+                <div className="px-6 py-7 sm:px-8 sm:py-8">
+                  <PageTransition>{children}</PageTransition>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 lg:hidden">
+              <Link
+                className={buttonVariants({
+                  className: 'w-full justify-center rounded-[18px]',
+                  size: 'lg',
+                  variant: 'secondary'
+                })}
+                href="/signup"
+              >
+                Create account
+              </Link>
+            </div>
+          </section>
+        </main>
       </div>
     </div>
   )
