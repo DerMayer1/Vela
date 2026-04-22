@@ -2,14 +2,34 @@ import { drizzle } from 'drizzle-orm/node-postgres'
 import { Pool } from 'pg'
 import * as schema from '@/lib/db/schema'
 
-const connectionString = process.env.DATABASE_URL
+function createDb() {
+  const connectionString = process.env.DATABASE_URL
 
-if (!connectionString) {
-  throw new Error('DATABASE_URL is not set')
+  if (!connectionString) {
+    throw new Error('DATABASE_URL is not set')
+  }
+
+  const pool = new Pool({
+    connectionString
+  })
+
+  return drizzle(pool, { schema })
 }
 
-const pool = new Pool({
-  connectionString
-})
+type Database = ReturnType<typeof createDb>
 
-export const db = drizzle(pool, { schema })
+let dbInstance: Database | null = null
+
+function getDb() {
+  if (!dbInstance) {
+    dbInstance = createDb()
+  }
+
+  return dbInstance
+}
+
+export const db = new Proxy({} as Database, {
+  get(_target, property, receiver) {
+    return Reflect.get(getDb() as object, property, receiver)
+  }
+})
