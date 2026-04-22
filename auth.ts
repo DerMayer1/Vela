@@ -4,6 +4,9 @@ import { and, eq } from 'drizzle-orm'
 import { authConfig } from '@/lib/auth/config'
 import { db } from '@/lib/db'
 import { patientProfiles, tenants, users } from '@/lib/db/schema'
+import { auditSecurityEvent } from '@/lib/security/audit'
+import { consumeRateLimit } from '@/lib/security/rate-limit'
+import { getClientIp } from '@/lib/security/request'
 import { verifyPassword } from '@/lib/auth/password'
 import { signInSchema } from '@/lib/validations/auth'
 import { resolveTenantSlugFromHost } from '@/lib/tenant/resolve'
@@ -20,11 +23,33 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const validatedCredentials = signInSchema.safeParse(credentials)
 
         if (!validatedCredentials.success) {
+          auditSecurityEvent({
+            action: 'auth.signin.invalid_payload',
+            request
+          })
           return null
         }
 
         const hostHeader = request instanceof Request ? request.headers.get('host') : null
         const tenantSlug = resolveTenantSlugFromHost(hostHeader)
+        const clientIp = request instanceof Request ? getClientIp(request) : 'unknown'
+        const rateLimitResult = consumeRateLimit({
+          key: `signin:${clientIp}:${tenantSlug}:${validatedCredentials.data.email.toLowerCase()}`,
+          limit: 10,
+          windowMs: 10 * 60 * 1000
+        })
+
+        if (!rateLimitResult.success) {
+          auditSecurityEvent({
+            action: 'auth.signin.rate_limited',
+            metadata: {
+              email: validatedCredentials.data.email,
+              tenantSlug
+            },
+            request
+          })
+          return null
+        }
 
         const [record] = await db
           .select({
@@ -52,6 +77,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           .limit(1)
 
         if (!record) {
+          auditSecurityEvent({
+            action: 'auth.signin.invalid_credentials',
+            metadata: {
+              email: validatedCredentials.data.email,
+              tenantSlug
+            },
+            request
+          })
           return null
         }
 
@@ -61,8 +94,26 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         )
 
         if (!isValidPassword) {
+          auditSecurityEvent({
+            action: 'auth.signin.invalid_credentials',
+            metadata: {
+              email: validatedCredentials.data.email,
+              tenantSlug
+            },
+            request
+          })
           return null
         }
+
+        auditSecurityEvent({
+          action: 'auth.signin.success',
+          metadata: {
+            tenantSlug
+          },
+          request,
+          sessionUserId: record.id,
+          tenantId: record.tenantId
+        })
 
         return {
           email: record.email,

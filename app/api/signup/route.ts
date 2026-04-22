@@ -1,8 +1,11 @@
-import { NextResponse } from 'next/server'
 import { ZodError } from 'zod'
 import { db } from '@/lib/db'
 import { patientProfiles, users } from '@/lib/db/schema'
 import { hashPassword } from '@/lib/auth/password'
+import { auditSecurityEvent } from '@/lib/security/audit'
+import { secureJson } from '@/lib/security/headers'
+import { consumeRateLimit } from '@/lib/security/rate-limit'
+import { getClientIp } from '@/lib/security/request'
 import { resolveTenantFromRequest } from '@/lib/tenant/server'
 import { signUpSchema } from '@/lib/validations/auth'
 
@@ -18,10 +21,43 @@ export async function POST(request: Request) {
   try {
     const body = await request.json()
     const validatedBody = signUpSchema.parse(body)
+    const clientIp = getClientIp(request)
+    const rateLimitResult = consumeRateLimit({
+      key: `signup:${clientIp}:${validatedBody.email.toLowerCase()}`,
+      limit: 5,
+      windowMs: 15 * 60 * 1000
+    })
+
+    if (!rateLimitResult.success) {
+      auditSecurityEvent({
+        action: 'auth.signup.rate_limited',
+        metadata: {
+          email: validatedBody.email
+        },
+        request
+      })
+      return secureJson(
+        { error: 'Too many requests. Try again later.' },
+        {
+          headers: {
+            'Retry-After': String(rateLimitResult.retryAfterSeconds)
+          },
+          status: 429
+        }
+      )
+    }
+
     const tenant = await resolveTenantFromRequest(request)
 
     if (!tenant) {
-      return NextResponse.json({ error: 'Tenant not found' }, { status: 404 })
+      auditSecurityEvent({
+        action: 'auth.signup.tenant_not_found',
+        metadata: {
+          email: validatedBody.email
+        },
+        request
+      })
+      return secureJson({ error: 'Unable to create account' }, { status: 404 })
     }
 
     const passwordHash = await hashPassword(validatedBody.password)
@@ -56,10 +92,20 @@ export async function POST(request: Request) {
     })
 
     if (!createdUser) {
-      return NextResponse.json({ error: 'Failed to create account' }, { status: 500 })
+      return secureJson({ error: 'Unable to create account' }, { status: 500 })
     }
 
-    return NextResponse.json(
+    auditSecurityEvent({
+      action: 'auth.signup.success',
+      metadata: {
+        email: createdUser.email
+      },
+      request,
+      sessionUserId: createdUser.id,
+      tenantId: tenant.id
+    })
+
+    return secureJson(
       {
         data: {
           email: createdUser.email,
@@ -71,16 +117,20 @@ export async function POST(request: Request) {
     )
   } catch (error) {
     if (isPostgresError(error) && error.code === '23505') {
-      return NextResponse.json(
-        { error: 'An account with this email already exists' },
-        { status: 409 }
-      )
+      auditSecurityEvent({
+        action: 'auth.signup.duplicate_attempt',
+        metadata: {
+          error: 'unique_constraint'
+        },
+        request
+      })
+      return secureJson({ error: 'Unable to create account' }, { status: 409 })
     }
 
     if (error instanceof ZodError) {
-      return NextResponse.json({ error: 'Invalid sign up payload' }, { status: 400 })
+      return secureJson({ error: 'Invalid sign up payload' }, { status: 400 })
     }
 
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return secureJson({ error: 'Internal server error' }, { status: 500 })
   }
 }

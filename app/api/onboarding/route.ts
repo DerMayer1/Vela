@@ -1,9 +1,12 @@
 import { type InferInsertModel, and, eq } from 'drizzle-orm'
-import { NextResponse } from 'next/server'
 import { ZodError } from 'zod'
 import { db } from '@/lib/db'
 import { patientProfiles, users } from '@/lib/db/schema'
 import { requireSessionUser } from '@/lib/auth/session'
+import { auditSecurityEvent } from '@/lib/security/audit'
+import { secureJson } from '@/lib/security/headers'
+import { consumeRateLimit } from '@/lib/security/rate-limit'
+import { getClientIp } from '@/lib/security/request'
 import {
   onboardingDraftSchema,
   onboardingFormSchema,
@@ -14,7 +17,7 @@ export async function GET() {
   const sessionUser = await requireSessionUser()
 
   if (!sessionUser) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return secureJson({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const [record] = await db
@@ -45,7 +48,13 @@ export async function GET() {
     )
     .limit(1)
 
-  return NextResponse.json({
+  auditSecurityEvent({
+    action: 'patient.onboarding.view',
+    sessionUserId: sessionUser.id,
+    tenantId: sessionUser.tenantId
+  })
+
+  return secureJson({
     data: toOnboardingFormValues(record)
   })
 }
@@ -54,10 +63,35 @@ export async function PATCH(request: Request) {
   const sessionUser = await requireSessionUser()
 
   if (!sessionUser) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return secureJson({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
+    const clientIp = getClientIp(request)
+    const rateLimitResult = consumeRateLimit({
+      key: `onboarding:${clientIp}:${sessionUser.id}`,
+      limit: 30,
+      windowMs: 10 * 60 * 1000
+    })
+
+    if (!rateLimitResult.success) {
+      auditSecurityEvent({
+        action: 'patient.onboarding.rate_limited',
+        request,
+        sessionUserId: sessionUser.id,
+        tenantId: sessionUser.tenantId
+      })
+      return secureJson(
+        { error: 'Too many requests. Try again later.' },
+        {
+          headers: {
+            'Retry-After': String(rateLimitResult.retryAfterSeconds)
+          },
+          status: 429
+        }
+      )
+    }
+
     const body = await request.json()
     const validatedBody = onboardingDraftSchema.parse(body)
 
@@ -90,7 +124,7 @@ export async function PATCH(request: Request) {
       .limit(1)
 
     if (!currentRecord) {
-      return NextResponse.json({ error: 'Patient profile not found' }, { status: 404 })
+      return secureJson({ error: 'Patient profile not found' }, { status: 404 })
     }
 
     const mergedRecord = {
@@ -182,16 +216,25 @@ export async function PATCH(request: Request) {
         )
     })
 
-    return NextResponse.json({
+    auditSecurityEvent({
+      action: validatedBody.complete
+        ? 'patient.onboarding.completed'
+        : 'patient.onboarding.updated',
+      request,
+      sessionUserId: sessionUser.id,
+      tenantId: sessionUser.tenantId
+    })
+
+    return secureJson({
       data: {
         onboardingCompleted: Boolean(validatedBody.complete)
       }
     })
   } catch (error) {
     if (error instanceof ZodError) {
-      return NextResponse.json({ error: 'Invalid onboarding payload' }, { status: 400 })
+      return secureJson({ error: 'Invalid onboarding payload' }, { status: 400 })
     }
 
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return secureJson({ error: 'Internal server error' }, { status: 500 })
   }
 }

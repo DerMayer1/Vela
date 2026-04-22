@@ -2,12 +2,16 @@ import type { NextAuthConfig } from 'next-auth'
 
 export const authConfig = {
   session: {
-    strategy: 'jwt'
+    maxAge: 60 * 60 * 8,
+    strategy: 'jwt',
+    updateAge: 60 * 15
   },
+  useSecureCookies: process.env.NODE_ENV === 'production',
   pages: {
     signIn: '/signin'
   },
   providers: [],
+  trustHost: true,
   callbacks: {
     jwt({ token, user, trigger, session }) {
       if (user) {

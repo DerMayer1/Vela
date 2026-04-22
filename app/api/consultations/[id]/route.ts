@@ -1,9 +1,12 @@
 import { type InferInsertModel, and, eq, ne } from 'drizzle-orm'
-import { NextResponse } from 'next/server'
 import { ZodError } from 'zod'
 import { db } from '@/lib/db'
 import { consultations, patientProfiles, users } from '@/lib/db/schema'
 import { requireSessionUser } from '@/lib/auth/session'
+import { auditSecurityEvent } from '@/lib/security/audit'
+import { secureJson } from '@/lib/security/headers'
+import { consumeRateLimit } from '@/lib/security/rate-limit'
+import { getClientIp } from '@/lib/security/request'
 import { updateConsultationSchema } from '@/lib/validations/consultation'
 
 interface RouteContext {
@@ -16,7 +19,7 @@ export async function GET(_request: Request, context: RouteContext) {
   const sessionUser = await requireSessionUser()
 
   if (!sessionUser) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return secureJson({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const [consultation] = await db
@@ -63,7 +66,7 @@ export async function GET(_request: Request, context: RouteContext) {
     .limit(1)
 
   if (!consultation) {
-    return NextResponse.json({ error: 'Consultation not found' }, { status: 404 })
+    return secureJson({ error: 'Consultation not found' }, { status: 404 })
   }
 
   const pastConsultations = await db
@@ -83,7 +86,16 @@ export async function GET(_request: Request, context: RouteContext) {
     )
     .orderBy(consultations.scheduledAt)
 
-  return NextResponse.json({
+  auditSecurityEvent({
+    action: 'consultation.view',
+    metadata: {
+      consultationId: consultation.id
+    },
+    sessionUserId: sessionUser.id,
+    tenantId: sessionUser.tenantId
+  })
+
+  return secureJson({
     data: {
       chiefComplaint: consultation.chiefComplaint,
       id: consultation.id,
@@ -119,10 +131,38 @@ export async function PATCH(request: Request, context: RouteContext) {
   const sessionUser = await requireSessionUser()
 
   if (!sessionUser) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return secureJson({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
+    const clientIp = getClientIp(request)
+    const rateLimitResult = consumeRateLimit({
+      key: `consultations:update:${clientIp}:${sessionUser.id}:${context.params.id}`,
+      limit: 30,
+      windowMs: 10 * 60 * 1000
+    })
+
+    if (!rateLimitResult.success) {
+      auditSecurityEvent({
+        action: 'consultation.update.rate_limited',
+        metadata: {
+          consultationId: context.params.id
+        },
+        request,
+        sessionUserId: sessionUser.id,
+        tenantId: sessionUser.tenantId
+      })
+      return secureJson(
+        { error: 'Too many requests. Try again later.' },
+        {
+          headers: {
+            'Retry-After': String(rateLimitResult.retryAfterSeconds)
+          },
+          status: 429
+        }
+      )
+    }
+
     const body = await request.json()
     const validatedBody = updateConsultationSchema.parse(body)
 
@@ -146,7 +186,7 @@ export async function PATCH(request: Request, context: RouteContext) {
       .limit(1)
 
     if (!ownedConsultation) {
-      return NextResponse.json({ error: 'Consultation not found' }, { status: 404 })
+      return secureJson({ error: 'Consultation not found' }, { status: 404 })
     }
 
     const updatePayload: Partial<InferInsertModel<typeof consultations>> = {
@@ -186,10 +226,21 @@ export async function PATCH(request: Request, context: RouteContext) {
       })
 
     if (!updatedConsultation) {
-      return NextResponse.json({ error: 'Failed to update consultation' }, { status: 500 })
+      return secureJson({ error: 'Failed to update consultation' }, { status: 500 })
     }
 
-    return NextResponse.json({
+    auditSecurityEvent({
+      action: 'consultation.update.success',
+      metadata: {
+        consultationId: updatedConsultation.id,
+        status: validatedBody.status
+      },
+      request,
+      sessionUserId: sessionUser.id,
+      tenantId: sessionUser.tenantId
+    })
+
+    return secureJson({
       data: {
         ...updatedConsultation,
         notes: updatedConsultation.notes ?? null,
@@ -199,9 +250,9 @@ export async function PATCH(request: Request, context: RouteContext) {
     })
   } catch (error) {
     if (error instanceof ZodError) {
-      return NextResponse.json({ error: 'Invalid consultation update payload' }, { status: 400 })
+      return secureJson({ error: 'Invalid consultation update payload' }, { status: 400 })
     }
 
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return secureJson({ error: 'Internal server error' }, { status: 500 })
   }
 }

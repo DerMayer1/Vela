@@ -16,29 +16,60 @@ export const symptomDurationSchema = z.enum([
 
 export const symptomSeveritySchema = z.enum(['mild', 'moderate', 'severe'])
 
+const patientNameSchema = z
+  .string()
+  .trim()
+  .min(2, 'This field must be at least 2 characters')
+  .max(80, 'This field is too long')
+
+const dateOfBirthSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use the format YYYY-MM-DD')
+  .refine((value) => {
+    const parsedDate = new Date(`${value}T00:00:00Z`)
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return false
+    }
+
+    const today = new Date()
+    const oldestAllowed = new Date()
+    oldestAllowed.setUTCFullYear(today.getUTCFullYear() - 120)
+
+    return parsedDate <= today && parsedDate >= oldestAllowed
+  }, 'Enter a valid date of birth')
+
+const phoneSchema = z
+  .string()
+  .trim()
+  .max(30, 'Phone number is too long')
+  .regex(/^[0-9+()\s-]*$/, 'Enter a valid phone number')
+  .or(z.literal(''))
+
+const medicalHistoryItemSchema = z.string().trim().min(1).max(120, 'Entry is too long')
+
 export const stepPersonalInfoSchema = z.object({
-  firstName: z.string().trim().min(2, 'First name must be at least 2 characters'),
-  lastName: z.string().trim().min(2, 'Last name must be at least 2 characters'),
-  dateOfBirth: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use the format YYYY-MM-DD'),
+  firstName: patientNameSchema,
+  lastName: patientNameSchema,
+  dateOfBirth: dateOfBirthSchema,
   gender: genderSchema,
-  phone: z.string().trim().max(30, 'Phone number is too long').or(z.literal(''))
+  phone: phoneSchema
 })
 
 export const stepSymptomsSchema = z.object({
   chiefComplaint: z
     .string()
     .trim()
-    .min(10, 'Please describe your symptoms in at least 10 characters'),
+    .min(10, 'Please describe your symptoms in at least 10 characters')
+    .max(1000, 'Symptom description is too long'),
   duration: symptomDurationSchema,
   severity: symptomSeveritySchema
 })
 
 export const stepMedicalHistorySchema = z.object({
-  conditions: z.array(z.string().trim().min(1)).default([]),
-  medications: z.array(z.string().trim().min(1)).default([]),
-  allergies: z.array(z.string().trim().min(1)).default([]),
+  conditions: z.array(medicalHistoryItemSchema).max(25, 'Too many conditions').default([]),
+  medications: z.array(medicalHistoryItemSchema).max(25, 'Too many medications').default([]),
+  allergies: z.array(medicalHistoryItemSchema).max(25, 'Too many allergies').default([]),
   hasRecentSurgery: z.boolean()
 })
 

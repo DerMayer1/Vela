@@ -1,16 +1,19 @@
 import { and, eq } from 'drizzle-orm'
-import { NextResponse } from 'next/server'
 import { ZodError } from 'zod'
 import { db } from '@/lib/db'
 import { consultations, patientProfiles } from '@/lib/db/schema'
 import { requireSessionUser } from '@/lib/auth/session'
+import { auditSecurityEvent } from '@/lib/security/audit'
+import { secureJson } from '@/lib/security/headers'
+import { consumeRateLimit } from '@/lib/security/rate-limit'
+import { getClientIp } from '@/lib/security/request'
 import { createConsultationSchema } from '@/lib/validations/consultation'
 
 export async function GET() {
   const sessionUser = await requireSessionUser()
 
   if (!sessionUser) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return secureJson({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const [patient] = await db
@@ -25,7 +28,7 @@ export async function GET() {
     .limit(1)
 
   if (!patient) {
-    return NextResponse.json({ data: [] })
+    return secureJson({ data: [] })
   }
 
   const records = await db
@@ -48,7 +51,16 @@ export async function GET() {
     )
     .orderBy(consultations.scheduledAt)
 
-  return NextResponse.json({
+  auditSecurityEvent({
+    action: 'consultation.list.view',
+    metadata: {
+      count: records.length
+    },
+    sessionUserId: sessionUser.id,
+    tenantId: sessionUser.tenantId
+  })
+
+  return secureJson({
     data: records.map((record) => ({
       ...record,
       notes: record.notes ?? null,
@@ -62,10 +74,35 @@ export async function POST(request: Request) {
   const sessionUser = await requireSessionUser()
 
   if (!sessionUser) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return secureJson({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
+    const clientIp = getClientIp(request)
+    const rateLimitResult = consumeRateLimit({
+      key: `consultations:create:${clientIp}:${sessionUser.id}`,
+      limit: 15,
+      windowMs: 10 * 60 * 1000
+    })
+
+    if (!rateLimitResult.success) {
+      auditSecurityEvent({
+        action: 'consultation.create.rate_limited',
+        request,
+        sessionUserId: sessionUser.id,
+        tenantId: sessionUser.tenantId
+      })
+      return secureJson(
+        { error: 'Too many requests. Try again later.' },
+        {
+          headers: {
+            'Retry-After': String(rateLimitResult.retryAfterSeconds)
+          },
+          status: 429
+        }
+      )
+    }
+
     const body = await request.json()
     const validatedBody = createConsultationSchema.parse(body)
 
@@ -81,7 +118,7 @@ export async function POST(request: Request) {
       .limit(1)
 
     if (!patient) {
-      return NextResponse.json({ error: 'Patient profile not found' }, { status: 404 })
+      return secureJson({ error: 'Patient profile not found' }, { status: 404 })
     }
 
     const [consultation] = await db
@@ -106,10 +143,21 @@ export async function POST(request: Request) {
       })
 
     if (!consultation) {
-      return NextResponse.json({ error: 'Failed to create consultation' }, { status: 500 })
+      return secureJson({ error: 'Failed to create consultation' }, { status: 500 })
     }
 
-    return NextResponse.json(
+    auditSecurityEvent({
+      action: 'consultation.create.success',
+      metadata: {
+        consultationId: consultation.id,
+        specialty: consultation.specialty
+      },
+      request,
+      sessionUserId: sessionUser.id,
+      tenantId: sessionUser.tenantId
+    })
+
+    return secureJson(
       {
         data: {
           ...consultation,
@@ -122,9 +170,9 @@ export async function POST(request: Request) {
     )
   } catch (error) {
     if (error instanceof ZodError) {
-      return NextResponse.json({ error: 'Invalid consultation payload' }, { status: 400 })
+      return secureJson({ error: 'Invalid consultation payload' }, { status: 400 })
     }
 
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return secureJson({ error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -1,6 +1,7 @@
 import NextAuth from 'next-auth'
 import { NextResponse } from 'next/server'
 import { authConfig } from '@/lib/auth/config'
+import { applyNoStoreHeaders, applySecurityHeaders } from '@/lib/security/headers'
 import { resolveTenantSlugFromHost } from '@/lib/tenant/resolve'
 
 const { auth } = NextAuth(authConfig)
@@ -22,17 +23,17 @@ export default auth((request) => {
     isOnboardingRoute
 
   if (isProtectedRoute && !isAuthenticated) {
-    return NextResponse.redirect(new URL('/signin', request.url))
+    return applySecurityHeaders(NextResponse.redirect(new URL('/signin', request.url)))
   }
 
   if (hasTenantMismatch && !isAuthRoute) {
-    return NextResponse.redirect(new URL('/signin', request.url))
+    return applySecurityHeaders(NextResponse.redirect(new URL('/signin', request.url)))
   }
 
   if (isAuthenticated && !hasTenantMismatch && isAuthRoute) {
-    return NextResponse.redirect(
+    return applySecurityHeaders(NextResponse.redirect(
       new URL(onboardingCompleted ? '/dashboard' : '/onboarding', request.url)
-    )
+    ))
   }
 
   if (
@@ -42,23 +43,26 @@ export default auth((request) => {
     isProtectedRoute &&
     !isOnboardingRoute
   ) {
-    return NextResponse.redirect(new URL('/onboarding', request.url))
+    return applySecurityHeaders(NextResponse.redirect(new URL('/onboarding', request.url)))
   }
 
   if (isAuthenticated && !hasTenantMismatch && onboardingCompleted && isOnboardingRoute) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+    return applySecurityHeaders(NextResponse.redirect(new URL('/dashboard', request.url)))
   }
 
-  return NextResponse.next()
+  const response = NextResponse.next()
+
+  applySecurityHeaders(response)
+
+  if (isProtectedRoute || isAuthRoute) {
+    applyNoStoreHeaders(response)
+  }
+
+  return response
 })
 
 export const config = {
   matcher: [
-    '/dashboard/:path*',
-    '/consultations/:path*',
-    '/profile/:path*',
-    '/onboarding/:path*',
-    '/signin',
-    '/signup'
+    '/((?!api|_next/static|_next/image|favicon.ico).*)'
   ]
 }

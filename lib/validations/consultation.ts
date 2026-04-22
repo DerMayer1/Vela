@@ -11,8 +11,9 @@ export const createConsultationSchema = z.object({
   chiefComplaint: z
     .string()
     .trim()
-    .min(10, 'Please describe the reason for the consultation'),
-  physicianName: z.string().trim().min(2, 'Select a physician'),
+    .min(10, 'Please describe the reason for the consultation')
+    .max(1000, 'Consultation reason is too long'),
+  physicianName: z.string().trim().min(2, 'Select a physician').max(120, 'Physician name is too long'),
   scheduledAt: z.string().datetime('Select a valid time slot'),
   specialty: z.enum(specialties)
 })

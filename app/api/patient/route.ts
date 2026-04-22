@@ -1,14 +1,15 @@
 import { and, eq } from 'drizzle-orm'
-import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { patientProfiles, users } from '@/lib/db/schema'
 import { requireSessionUser } from '@/lib/auth/session'
+import { auditSecurityEvent } from '@/lib/security/audit'
+import { secureJson } from '@/lib/security/headers'
 
 export async function GET() {
   const sessionUser = await requireSessionUser()
 
   if (!sessionUser) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return secureJson({ error: 'Unauthorized' }, { status: 401 })
   }
 
   const [patient] = await db
@@ -43,10 +44,16 @@ export async function GET() {
     .limit(1)
 
   if (!patient) {
-    return NextResponse.json({ error: 'Patient profile not found' }, { status: 404 })
+    return secureJson({ error: 'Patient profile not found' }, { status: 404 })
   }
 
-  return NextResponse.json({
+  auditSecurityEvent({
+    action: 'patient.profile.view',
+    sessionUserId: sessionUser.id,
+    tenantId: sessionUser.tenantId
+  })
+
+  return secureJson({
     data: {
       ...patient,
       allergies: patient.allergies ?? [],
