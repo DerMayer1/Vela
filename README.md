@@ -1,52 +1,78 @@
 # Vela
 
-Vela is a patient-first telehealth product focused on one thing: making digital care feel clear, calm, and operationally trustworthy from the first click.
+Vela is a multi-tenant patient intake, consultation access, and retention orchestration system for virtual care.
 
-This repository contains the patient-facing application for the Vela experience, including authentication, onboarding, scheduling, consultations, profile management, and the core patient workspace.
+It is designed to make the patient-facing care journey feel operationally trustworthy: one workspace, one tenant context, one clear next action.
 
-## What Vela Solves
+## What Is Vela
 
-Most healthcare software gets the workflow right but the experience wrong. Patients are pushed through fragmented steps, generic forms, and unclear navigation at the exact moment they need reassurance.
+Vela is a product system for digital care operations, not a collection of disconnected healthcare screens.
 
-Vela is designed to fix that.
+The current repository contains the patient-facing application layer for:
 
-It brings the core patient journey into a single coherent flow:
+- tenant-aware authentication
+- guided onboarding and intake capture
+- consultation scheduling and reopening
+- consultation room operations
+- patient profile and medical context access
+- audit-aware and rate-limited clinical record handling
 
-- secure sign in and account creation
-- guided onboarding and intake
-- consultation scheduling
-- dashboard overview of next actions
-- consultation room with notes and prescription handling
-- patient profile and medical summary
+In practical terms, Vela is the interface layer that sits between a patient, a tenant-specific care experience, and the operational workflows required to move that patient through intake, scheduling, and follow-up without fragmentation.
 
-The product goal is not just functional telehealth. It is a telehealth experience that feels premium, legible, and operationally dependable.
+## Why It Exists
 
-## Product Scope
+Most telehealth products are functionally adequate but operationally noisy. They can book visits, render forms, and save notes, but they often fail at the system level:
 
-The current application includes:
+- patient state is fragmented across flows
+- the next action is unclear
+- tenant context is bolted on late
+- product surfaces look disconnected from clinical operations
+- reliability concerns are deferred until scale forces them into scope
 
-- marketing landing page
-- auth flows for sign in and sign up
-- patient onboarding flow
-- dashboard overview
-- consultation scheduling flow
-- consultation detail room with status transitions
-- patient profile
-- tenant-aware auth/session handling
+Vela exists to explore the opposite approach: a care workspace that treats operational clarity, tenant isolation, and controlled product scope as first-class engineering constraints.
 
-## Core Experience Principles
+## Core Features
 
-- clarity over noise
-- operational actions always visible
-- trust cues before speed
-- one patient workspace across the care journey
-- clean separation between marketing, auth, and authenticated product surfaces
+Vela is framed as systems, not isolated features.
 
-## Tech Stack
+- Multi-tenant patient access system with host-resolved tenant context and scoped session state
+- Guided intake and onboarding system that captures identity, symptom context, and medical history in a controlled progression
+- Consultation scheduling and re-entry system that preserves the patient’s place in the care journey
+- Consultation workspace system for notes, prescription capture, and status transitions
+- Patient record access system that consolidates personal, intake, and clinical summary data
+- Response hardening, audit logging, and rate-limited mutation system for sensitive flows
+
+## Architecture
+
+The repository is organized around product surfaces and platform utilities rather than a generic component dump.
+
+- `app/`
+  App Router entrypoints, route groups, and API routes
+- `components/`
+  product surfaces, interaction primitives, and layout shells
+- `lib/`
+  auth, tenant resolution, data access, validation, security utilities, and shared logic
+- `hooks/`
+  query and view-model helpers
+- `types/`
+  shared TypeScript contracts
+- `scripts/`
+  local development helpers and seed routines
+
+### Route Groups
+
+- `app/(marketing)`
+  public product presentation
+- `app/(auth)`
+  sign in and account creation
+- `app/(app)`
+  authenticated patient workspace
+
+## Stack
 
 - `Next.js 14`
 - `React 18`
-- `TypeScript` in strict mode
+- `TypeScript`
 - `Tailwind CSS`
 - `Framer Motion`
 - `NextAuth v5`
@@ -57,94 +83,92 @@ The current application includes:
 - `Zod`
 - `Zustand`
 
-## Architecture
+## System Design
 
-The app follows a simple product-oriented structure:
+Vela follows a deliberately narrow v1 design.
 
-- `app/`
-  Next.js App Router entrypoints and route groups
-- `components/`
-  product surfaces, layout primitives, UI components, and feature modules
-- `lib/`
-  database, auth, validation, constants, tenant logic, and shared utilities
-- `hooks/`
-  data-fetching and product hooks
-- `types/`
-  shared TypeScript contracts
+```mermaid
+flowchart LR
+    A["Patient Browser"] --> B["Next.js App Router"]
+    B --> C["Auth and Tenant Resolution"]
+    B --> D["Validated API Routes"]
+    C --> E["Session JWT"]
+    D --> F["Drizzle ORM"]
+    F --> G["PostgreSQL"]
+    D --> H["Security Controls"]
+    H --> I["Rate Limits"]
+    H --> J["Audit Events"]
+```
 
-### Route Groups
+### Design Principles
 
-- `app/(marketing)`
-  landing and public product presentation
-- `app/(auth)`
-  sign in and sign up
-- `app/(app)`
-  authenticated patient workspace
+- Tenant context is resolved early and propagated through session state.
+- Sensitive writes stay behind validated API routes.
+- Patient and consultation records are always filtered by tenant and ownership boundaries.
+- The current product favors synchronous request-response flows over distributed event choreography.
+- Security controls are embedded in the application layer, not deferred to a future platform rewrite.
 
-### Design System Direction
+### Intentional Constraints
 
-The UI is intentionally built around:
+Senior product systems do not try to do everything in v1.
 
-- calm light surfaces
-- restrained cobalt and deep navy accents
-- clear spacing and hierarchy
-- strong primary actions
-- reduced visual noise inside operational screens
+Vela intentionally excludes:
 
-## Authentication and Tenant Model
+- provider-facing multi-role operations
+- webhook-driven workflow engines
+- background queue orchestration for clinical actions
+- autonomous AI decision-making in live care paths
+- EHR integrations
+- billing and claims flows
+- real-time video infrastructure
 
-Vela uses `NextAuth` with a credentials provider.
+These omissions are deliberate. They preserve reliability, keep the trust boundary smaller, and reduce operational complexity while the core patient workflow is still being hardened.
 
-Authentication is tenant-aware. During sign in, the app resolves the tenant from the request host and validates the user against that tenant context. This keeps session and patient state aligned with the active workspace.
+## Multi-Tenant Strategy
+
+Vela is tenant-aware by default rather than tenant-aware by convention.
+
+- tenant resolution is derived from the request host
+- session payloads carry `tenantId` and `tenantSlug`
+- database reads and writes are scoped by tenant
+- unique constraints are tenant-scoped where appropriate
+- patient and consultation access checks combine tenant and ownership constraints
+
+This allows the application to support isolated branded workspaces without treating tenant separation as a UI-only concern.
 
 Relevant areas:
 
 - [`auth.ts`](./auth.ts)
-- `lib/auth/*`
-- `lib/tenant/*`
+- [`middleware.ts`](./middleware.ts)
+- [`lib/tenant/resolve.ts`](./lib/tenant/resolve.ts)
+- [`lib/tenant/server.ts`](./lib/tenant/server.ts)
+- [`lib/db/schema.ts`](./lib/db/schema.ts)
 
-## Main User Flows
+## AI Orchestration
 
-### 1. Access
+Vela should be read as AI-adjacent infrastructure, not as an LLM demo.
 
-Patients can:
+The current repository is preparing the right operational surfaces for future AI-assisted care workflows:
 
-- create an account
-- sign in securely
-- enter a branded care workspace
+- structured intake capture
+- validated clinical context
+- constrained scheduling flow
+- tenant-aware patient state
+- auditable mutation paths
 
-### 2. Onboarding
+That matters because usable AI in healthcare products is rarely a single chat box. It is a system problem: inputs, scopes, retries, auditability, fallback behavior, and tenant boundaries.
 
-The onboarding flow captures patient identity and intake context so the first consultation starts with better information.
+### Current Position
 
-### 3. Scheduling
+Vela v1 intentionally does **not** ship:
 
-Patients move through a structured consultation scheduler:
+- autonomous diagnosis
+- model-driven prescription generation
+- background agent loops
+- queue-based AI workers
+- webhook-triggered orchestration chains
 
-1. choose a specialty
-2. choose a physician
-3. choose a time slot
-4. confirm the consultation and chief complaint
-
-### 4. Consultation Workspace
-
-Each consultation has an operational room where the product supports:
-
-- status changes
-- patient context review
-- consultation notes
-- prescription capture
-- access to previous consultations
-
-### 5. Patient Profile
-
-The profile centralizes:
-
-- personal details
-- contact data
-- gender and birth date
-- chief complaint
-- conditions, medications, and allergies
+The repository is therefore positioned for future AI-assisted triage and scheduling, but the live implementation remains deterministic and human-bounded.
 
 ## Local Development
 
@@ -153,7 +177,7 @@ The profile centralizes:
 - `Node.js`
 - `pnpm`
 - `Docker`
-- a local PostgreSQL container via Docker Compose
+- local PostgreSQL via Docker Compose
 
 ### Setup
 
@@ -166,59 +190,137 @@ pnpm db:seed
 pnpm dev
 ```
 
-Windows `cmd` can use:
+Windows `cmd` equivalent:
 
 ```bat
 copy .env.example .env.local
 ```
 
-The default database container is exposed on `127.0.0.1:5432`.
+### Environment Variables
 
-## Available Scripts
+The project expects at least:
 
-```bash
-pnpm dev
-pnpm build
-pnpm lint
-pnpm typecheck
-pnpm db:generate
-pnpm db:migrate
-pnpm db:studio
-pnpm db:seed
-```
+- `DATABASE_URL`
+- `NEXTAUTH_URL`
+- `NEXTAUTH_SECRET`
+- `NEXT_PUBLIC_APP_URL`
 
-## Development Notes
+## Production Considerations
 
-- validation is driven by `Zod`
-- form state is handled with `React Hook Form`
-- server state and cache orchestration are handled with `TanStack Query`
-- layout components stay structural
-- route pages stay focused on composition
+This repository already includes part of the production posture, and explicitly defers the rest.
 
-## Repository Highlights
+### Implemented Today
 
-- `components/pages/LandingPage.tsx`
-  marketing experience
-- `components/consultations/ConsultationScheduler.tsx`
-  multi-step consultation creation flow
-- `components/consultations/ConsultationRoom.tsx`
-  consultation operations and documentation
-- `components/dashboard/DashboardOverview.tsx`
-  authenticated patient workspace overview
-- `components/profile/ProfileOverview.tsx`
-  patient record view
+- tenant isolation in auth and data queries
+- rate limiting on sign in, sign up, onboarding, and consultation mutations
+- response hardening headers
+- no-store cache behavior for sensitive routes
+- audit events for auth attempts and clinical record access
+- password hashing and timing-safe verification
+- validated API payloads via `Zod`
 
-## Status
+See [`SECURITY.md`](./SECURITY.md) for the current control set.
 
-This repository represents an actively refined MVP with a strong focus on:
+### Operational Posture
 
-- visual quality
-- patient UX
-- operational coherence
-- implementation cleanliness
+Vela is currently optimized for correctness over distributed complexity.
 
-## Vision
+- writes are synchronous
+- mutation paths are narrow
+- fallback behavior is explicit and human-readable
+- failure handling stays close to the request boundary
 
-Vela is not trying to be a generic appointment app.
+### Intentionally Deferred
 
-It is intended to become the interface layer for a modern health product: one that treats trust, clarity, and workflow quality as product features, not cosmetic afterthoughts.
+To keep v1 reliable, the following are acknowledged but not yet introduced:
+
+- Redis-backed distributed rate limiting
+- queue strategy for background work
+- webhook delivery and retry guarantees
+- eventual consistency patterns between internal domains
+- async job recovery flows
+- cron-based reconciliation jobs
+- SIEM-backed centralized audit ingestion
+- HIPAA-grade operational compliance program
+
+The direction is not “ignore operations.” The direction is “sequence them in the right order.”
+
+## Roadmap
+
+Near-term evolution for Vela is systems-oriented:
+
+- provider-side operational workspace
+- durable queue and job orchestration layer
+- webhook ingestion and retry model for external systems
+- EHR and scheduling provider integration boundary
+- richer consultation lifecycle states
+- production-grade observability and audit export pipeline
+- AI-assisted triage support on top of structured patient intake
+- tenant configuration and branding control plane
+
+## ADRs
+
+The repository does not yet contain formal Architecture Decision Records.
+
+That is a gap worth closing next. The first ADRs should likely cover:
+
+- tenant resolution strategy
+- auth/session model
+- database tenancy model
+- synchronous versus queued workflow execution
+- AI scope boundaries for patient-facing flows
+
+Recommended future location:
+
+- `docs/adr/0001-tenant-resolution.md`
+- `docs/adr/0002-auth-session-model.md`
+- `docs/adr/0003-workflow-execution-boundaries.md`
+
+## Screenshots
+
+The README is ready for product screenshots once they are committed to the repository.
+
+Suggested captures:
+
+- landing and patient access surface
+- patient dashboard workspace
+- consultation scheduling flow
+- consultation workspace detail
+- patient profile record view
+
+Suggested path:
+
+- `docs/screenshots/landing.png`
+- `docs/screenshots/dashboard.png`
+- `docs/screenshots/consultation-scheduler.png`
+- `docs/screenshots/consultation-workspace.png`
+- `docs/screenshots/profile.png`
+
+## Demo Deployment
+
+Vela is deployed on Vercel.
+
+Add the canonical production alias here once the final domain is assigned:
+
+- `https://your-production-domain.vercel.app`
+
+Recommended practice:
+
+- keep `main` as the production branch
+- use preview deployments for branch validation
+- pin all production environment variables inside Vercel rather than relying on local-only configuration
+
+## Repository Notes
+
+This project should read as a product system under active hardening, not as a maximalist feature demo.
+
+The strongest signal in Vela is not “it does many things.”
+
+The strongest signal is that it is beginning to show operational judgment:
+
+- explicit scope boundaries
+- tenant-aware isolation
+- auditability
+- request-path hardening
+- validated mutations
+- deliberate exclusion of distributed complexity until it is justified
