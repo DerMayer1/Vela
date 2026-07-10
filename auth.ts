@@ -33,7 +33,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const hostHeader = request instanceof Request ? request.headers.get('host') : null
         const tenantSlug = resolveTenantSlugFromHost(hostHeader)
         const clientIp = request instanceof Request ? getClientIp(request) : 'unknown'
-        const rateLimitResult = consumeRateLimit({
+        const rateLimitResult = await consumeRateLimit({
           key: `signin:${clientIp}:${tenantSlug}:${validatedCredentials.data.email.toLowerCase()}`,
           limit: 10,
           windowMs: 10 * 60 * 1000

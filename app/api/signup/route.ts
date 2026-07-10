@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     const body = await request.json()
     const validatedBody = signUpSchema.parse(body)
     const clientIp = getClientIp(request)
-    const rateLimitResult = consumeRateLimit({
+    const rateLimitResult = await consumeRateLimit({
       key: `signup:${clientIp}:${validatedBody.email.toLowerCase()}`,
       limit: 5,
       windowMs: 15 * 60 * 1000

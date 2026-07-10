@@ -136,7 +136,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   try {
     const clientIp = getClientIp(request)
-    const rateLimitResult = consumeRateLimit({
+    const rateLimitResult = await consumeRateLimit({
       key: `consultations:update:${clientIp}:${sessionUser.id}:${context.params.id}`,
       limit: 30,
       windowMs: 10 * 60 * 1000

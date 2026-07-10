@@ -79,7 +79,7 @@ export async function POST(request: Request) {
 
   try {
     const clientIp = getClientIp(request)
-    const rateLimitResult = consumeRateLimit({
+    const rateLimitResult = await consumeRateLimit({
       key: `consultations:create:${clientIp}:${sessionUser.id}`,
       limit: 15,
       windowMs: 10 * 60 * 1000

@@ -68,7 +68,7 @@ export async function PATCH(request: Request) {
 
   try {
     const clientIp = getClientIp(request)
-    const rateLimitResult = consumeRateLimit({
+    const rateLimitResult = await consumeRateLimit({
       key: `onboarding:${clientIp}:${sessionUser.id}`,
       limit: 30,
       windowMs: 10 * 60 * 1000
